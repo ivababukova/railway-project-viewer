@@ -1,9 +1,10 @@
+// src/components/ProjectList.js
 import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
 import { PROJECTS_QUERY } from '../graphql/queries';
 import ServicesList from './ServicesList';
 
-function ProjectList() {
+export function ProjectList() {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const { loading, error, data } = useQuery(PROJECTS_QUERY);
 
