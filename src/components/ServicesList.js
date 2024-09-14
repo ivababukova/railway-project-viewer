@@ -1,58 +1,65 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo } from 'react';
 import { useQuery } from '@apollo/client';
-import { ENVIRONMENTS_QUERY, DEPLOYMENTS_QUERY } from '../graphql/queries';
+import { Card, Col, Row, Spin, Typography } from 'antd';
+import { ENVIRONMENTS_QUERY, DEPLOYMENTS_QUERY, ENVIRONMENTS_WITH_SERVICES_QUERY} from '../graphql/queries';
+
+const { Title } = Typography;
 
 const ServicesList = ({ projectId }) => {
-  const [services, setServices] = useState({});
 
-  const { data: environmentsData, loading: environmentsLoading, error: environmentsError } = useQuery(ENVIRONMENTS_QUERY, {
+  const { data, loading, error } = useQuery(ENVIRONMENTS_WITH_SERVICES_QUERY, {
     variables: { projectId },
   });
 
-  const { data: deploymentsData, loading: deploymentsLoading, error: deploymentsError } = useQuery(DEPLOYMENTS_QUERY, {
-    variables: { input: { projectId } },
-    skip: !environmentsData,
-  });
+  const services = useMemo(() => {
 
-  useEffect(() => {
-    if (environmentsData && deploymentsData) {
-      const newServices = {};
-      environmentsData.environments.edges.forEach(({ node: environment }) => {
-        const environmentServices = deploymentsData.deployments.edges
-          .filter(({ node }) => node.environment.id === environment.id)
-          .map(({ node }) => node.service)
-          .filter((service, index, self) => 
-            index === self.findIndex((t) => t.id === service.id)
-          );
-        newServices[environment.id] = environmentServices;
+    if (!data) return {};
+  
+    const newServices = {};
+    data.environments.edges.forEach(({ node: environment }) => {
+      const environmentServices = [];
+      const serviceIds = new Set();
+
+      data.deployments.edges.forEach(({ node }) => {
+        if (node.environment.id === environment.id && !serviceIds.has(node.service.id)) {
+          serviceIds.add(node.service.id);
+          environmentServices.push(node.service);
+        }
       });
-      setServices(newServices);
-    }
-  }, [environmentsData, deploymentsData]);
+      newServices[environment.id] = environmentServices;
+    });
 
-  if (environmentsLoading || deploymentsLoading) return <p>Loading...</p>;
-  if (environmentsError) return <p>Error loading environments: {environmentsError.message}</p>;
-  if (deploymentsError) return <p>Error loading deployments: {deploymentsError.message}</p>;
+    return newServices;
+  }, [data]);
+
+  if (loading) return <Spin />;
+  if (error) return <p>Error loading data: {error.message}</p>;
+
+
+  const renderServices = (environmentId) => {
+    const envServices = services[environmentId];
+    if (!envServices) return <Col span={24}><Spin /></Col>;
+    if (envServices.length === 0) return <Col span={24}><Card>No services in this environment.</Card></Col>;
+  
+    return envServices.map((service) => (
+      <Col span={8} key={service.id}>
+        <Card hoverable style={{ backgroundColor: '#52c41a', color: 'white' }}>
+          <Title level={4} style={{ color: 'white', margin: 0 }}>{service.name}</Title>
+          <p>ID: {service.id}</p>
+        </Card>
+      </Col>
+    ));
+  };
 
   return (
     <div>
-      <h2>Services by Environment</h2>
-      {environmentsData && environmentsData.environments.edges.map(({ node: environment }) => (
-        <div key={environment.id}>
-          <h3>{environment.name}</h3>
-          {services[environment.id] ? (
-            services[environment.id].length > 0 ? (
-              <ul>
-                {services[environment.id].map(service => (
-                  <li key={service.id}>{service.name} (ID: {service.id})</li>
-                ))}
-              </ul>
-            ) : (
-              <p>No services in this environment.</p>
-            )
-          ) : (
-            <p>Loading services...</p>
-          )}
+      <Title level={2}>Services by Environment</Title>
+      {data && data.environments.edges.map(({ node: environment }) => (
+        <div key={environment.id} style={{ marginBottom: 24 }}>
+          <Title level={3}>{environment.name}</Title>
+          <Row gutter={[16, 16]}>
+            {renderServices(environment.id)}
+          </Row>
         </div>
       ))}
     </div>

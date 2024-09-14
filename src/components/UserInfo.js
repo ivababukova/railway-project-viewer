@@ -1,24 +1,25 @@
 import React from 'react';
 import { useQuery } from '@apollo/client';
+import { Card, Avatar, Spin } from 'antd';
+import { UserOutlined } from '@ant-design/icons';
 import { ME_QUERY } from '../graphql/queries';
 
-function UserInfo() {
-  console.log('GraphQL API URL:', process.env.REACT_APP_GRAPHQL_API_URL);
-  console.log('Auth Token:', process.env.REACT_APP_AUTH_TOKEN ? 'Set' : 'Not Set');
+const { Meta } = Card;
 
+function UserInfo() {
   const { loading, error, data } = useQuery(ME_QUERY);
 
-
-  console.log("**** ", error);
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <Spin />;
   if (error) return <p>Error :(</p>;
 
   return (
-    <div>
-      <h2>User Information</h2>
-      <p>ID: {data.me.id}</p>
-      <p>Username: {data.me.username}</p>
-    </div>
+    <Card style={{ marginBottom: 16 }}>
+      <Meta
+        avatar={<Avatar icon={<UserOutlined />} />}
+        title={data.me.username}
+        description={`User ID: ${data.me.id}`}
+      />
+    </Card>
   );
 }
 

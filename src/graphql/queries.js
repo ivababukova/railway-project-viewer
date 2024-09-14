@@ -22,8 +22,9 @@ export const PROJECTS_QUERY = gql`
   }
 `;
 
-export const ENVIRONMENTS_QUERY = gql`
-  query FetchEnvironments($projectId: String!) {
+
+export const ENVIRONMENTS_WITH_SERVICES_QUERY = gql`
+  query FetchEnvironmentsAndDeployments($projectId: String!) {
     environments(projectId: $projectId) {
       edges {
         node {
@@ -32,12 +33,7 @@ export const ENVIRONMENTS_QUERY = gql`
         }
       }
     }
-  }
-`;
-
-export const DEPLOYMENTS_QUERY = gql`
-  query FetchDeployments($input: DeploymentListInput!) {
-    deployments(input: $input) {
+    deployments(input: { projectId: $projectId }) {
       edges {
         node {
           id
