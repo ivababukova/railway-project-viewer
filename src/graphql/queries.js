@@ -22,6 +22,19 @@ export const PROJECTS_QUERY = gql`
   }
 `;
 
+export const SERVICES_QUERY = gql`
+  query GetProjectServices($projectId: String!) {
+    project(id: $projectId) {
+      services {
+        edges {
+          node {
+            id
+          }
+        }
+      }
+    }
+  }
+`;
 
 export const ENVIRONMENTS_WITH_SERVICES_QUERY = gql`
   query FetchEnvironmentsAndDeployments($projectId: String!) {
@@ -30,6 +43,16 @@ export const ENVIRONMENTS_WITH_SERVICES_QUERY = gql`
         node {
           id
           name
+        }
+      }
+    }
+    project(id: $projectId) {
+      services {
+        edges {
+          node {
+            id
+            name
+          }
         }
       }
     }
