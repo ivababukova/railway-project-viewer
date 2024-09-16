@@ -8,6 +8,18 @@ import { PlusOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
+const getStatusColor = (status) => {
+  switch (status) {
+    case 'SUCCESS':
+      return '#52c41a'; // green
+    case 'FAILED':
+      return '#f5222d'; // red
+    case 'NOT_DEPLOYED':
+    default:
+      return '#808080'; // gray
+  }
+};
+
 const ServicesList = ({ projectId }) => {
   const { data, loading, error, refetch } = useQuery(ENVIRONMENTS_WITH_SERVICES_QUERY, {
     variables: { projectId },
@@ -34,7 +46,7 @@ const ServicesList = ({ projectId }) => {
     }
 
     return servicesList.map((service) => (
-      <ServiceCard key={service.id} service={service} color={color} />
+      <ServiceCard key={service.id} service={service} color={getStatusColor(service.status)} />
     ));
   };
 

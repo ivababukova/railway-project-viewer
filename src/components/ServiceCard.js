@@ -28,6 +28,7 @@ const ServiceCard = ({ service, color }) => (
         Name: {service.name || 'Unknown Service'}
       </StyledTitle>
       <p style={{ margin: 0 }}>ID: {service.id}</p>
+      <p style={{ margin: 0 }}>Status: {service.status}</p>
     </StyledCard>
   </Col>
 );

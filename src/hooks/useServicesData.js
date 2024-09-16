@@ -20,7 +20,7 @@ const getServiceMap = (data) => {
   projectServices.forEach(({ node: service }) => {
     serviceMap[service.id] = {
       ...service,
-      deployed: false,
+      status: 'NOT_DEPLOYED',
       environments: new Set(),
     };
   });
@@ -32,7 +32,7 @@ const getServiceMap = (data) => {
 
     if (serviceMap[serviceId]) {
       const service = serviceMap[serviceId];
-      service.deployed = true;
+      service.status = deployment.status;
       service.environments.add(environmentId);
 
       if (!service.name) {
@@ -41,7 +41,7 @@ const getServiceMap = (data) => {
     } else {
       serviceMap[serviceId] = {
         ...deployment.service,
-        deployed: true,
+        status: deployment.status,
         environments: new Set([environmentId]),
       };
     }
@@ -56,19 +56,17 @@ const categorizeServices = (services, environmentEdges) => {
   environmentEdges.forEach(({ node: environment }) => {
     servicesByType[environment.id] = {
       name: environment.name,
-      color: '#52c41a',
       services: [],
     };
   });
 
   servicesByType['not-deployed'] = {
     name: 'Not Deployed',
-    color: '#808080',
     services: [],
   };
 
   services.forEach((service) => {
-    if (service.deployed && service.environments.size > 0) {
+    if (service.status !== 'NOT_DEPLOYED' && service.environments.size > 0) {
       service.environments.forEach((envId) => {
         if (servicesByType[envId]) {
           servicesByType[envId].services.push(service);
