@@ -1,20 +1,27 @@
-import React from 'react';
-import { useQuery } from '@apollo/client';
-import { Col, Row, Spin, Typography } from 'antd';
-import { ENVIRONMENTS_WITH_SERVICES_QUERY } from '../graphql/queries';
+import React, { useState } from 'react';
+import { useQuery, useMutation } from '@apollo/client';
+import { Col, Row, Spin, Typography, Button, Modal, Input, Radio, message } from 'antd';
+import { ENVIRONMENTS_WITH_SERVICES_QUERY, SERVICE_CREATE_MUTATION } from '../graphql/queries';
 import ServiceCard from './ServiceCard';
 import { useServicesData } from '../hooks/useServicesData';
+import { PlusOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
 const ServicesList = ({ projectId }) => {
-  const { data, loading, error } = useQuery(ENVIRONMENTS_WITH_SERVICES_QUERY, {
+  const { data, loading, error, refetch } = useQuery(ENVIRONMENTS_WITH_SERVICES_QUERY, {
     variables: { projectId },
   });
+  const [serviceCreate, { loading: serviceCreateLoading }] = useMutation(SERVICE_CREATE_MUTATION);
 
   const { servicesByType } = useServicesData(data);
 
-  if (loading) return <Spin />;
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [newServiceName, setNewServiceName] = useState('');
+  const [sourceType, setSourceType] = useState('repo');
+  const [sourceValue, setSourceValue] = useState('');
+
+  if (loading) return <Spin size="large" />;
   if (error) return <p>Error loading data: {error.message}</p>;
 
   const renderServices = (servicesList, color) => {
@@ -31,9 +38,82 @@ const ServicesList = ({ projectId }) => {
     ));
   };
 
+  const handleOk = async () => {
+    if (newServiceName && sourceValue) {
+      try {
+        const sourceInput = sourceType === 'repo' 
+          ? { repo: sourceValue }
+          : { image: sourceValue };
+
+        await serviceCreate({
+          variables: {
+            input: {
+              name: newServiceName,
+              projectId,
+              source: sourceInput,
+            },
+          },
+        });
+
+        message.success('Service created successfully!');
+        setIsModalVisible(false);
+        resetForm();
+        refetch();
+      } catch (error) {
+        console.error('Error creating service:', error);
+        message.error(`Error creating service: ${error.message || 'Unknown error occurred'}`);
+      }
+    } else {
+      message.warning('Please fill in both service name and source value.');
+    }
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+    resetForm();
+  };
+
+  const resetForm = () => {
+    setNewServiceName('');
+    setSourceType('repo');
+    setSourceValue('');
+  };
+
   return (
     <div>
       <Title level={2}>Services by Environment</Title>
+      <Button onClick={() => setIsModalVisible(true)} icon={<PlusOutlined />}>
+        Create New Service
+      </Button>
+      <Modal
+        title="Create New Service"
+        open={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        okText="Create"
+        cancelText="Cancel"
+        confirmLoading={serviceCreateLoading}
+      >
+        <Input
+          placeholder="Service Name"
+          value={newServiceName}
+          onChange={(e) => setNewServiceName(e.target.value)}
+          style={{ marginBottom: 16 }}
+        />
+        <Radio.Group 
+          onChange={(e) => setSourceType(e.target.value)} 
+          value={sourceType}
+          style={{ marginBottom: 16 }}
+        >
+          <Radio value="repo">Repository</Radio>
+          <Radio value="image">Image</Radio>
+        </Radio.Group>
+        <Input
+          placeholder={sourceType === 'repo' ? "GitHub Repo URL" : "Docker Image Name"}
+          value={sourceValue}
+          onChange={(e) => setSourceValue(e.target.value)}
+        />
+      </Modal>
       {Object.entries(servicesByType).map(([envId, { name, color, services }]) => (
         <div key={envId} style={{ marginBottom: 24 }}>
           <Title level={3}>{name}</Title>

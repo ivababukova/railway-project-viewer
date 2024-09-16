@@ -75,3 +75,18 @@ export const ENVIRONMENTS_WITH_SERVICES_QUERY = gql`
     }
   }
 `;
+
+export const SERVICE_CREATE_MUTATION = gql`
+  mutation serviceCreate($input: ServiceCreateInput!) {
+    serviceCreate(input: $input) {
+      id
+      name
+      projectId
+      createdAt
+      updatedAt
+      templateServiceId
+      templateThreadSlug
+      featureFlags
+    }
+  }
+`;
