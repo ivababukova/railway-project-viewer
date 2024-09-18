@@ -23,15 +23,19 @@ const getStatusColor = (status) => {
 const ServicesList = ({ projectId }) => {
   const { data, loading, error, refetch } = useQuery(ENVIRONMENTS_WITH_SERVICES_QUERY, {
     variables: { projectId },
+    pollInterval: 5000 // poll every 5 seconds to see if data is updated
   });
   const [serviceCreate, { loading: serviceCreateLoading }] = useMutation(SERVICE_CREATE_MUTATION);
 
+  console.log("DATA: ", data);
   const { servicesByType } = useServicesData(data);
+  console.log("servicesByType: ", servicesByType);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newServiceName, setNewServiceName] = useState('');
   const [sourceType, setSourceType] = useState('repo');
   const [sourceValue, setSourceValue] = useState('');
+
 
   if (loading) return <Spin size="large" />;
   if (error) return <p>Error loading data: {error.message}</p>;
@@ -49,6 +53,7 @@ const ServicesList = ({ projectId }) => {
       <ServiceCard key={service.id} service={service} color={getStatusColor(service.status)} />
     ));
   };
+
 
   const handleOk = async () => {
     if (newServiceName && sourceValue) {

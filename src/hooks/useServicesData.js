@@ -30,21 +30,12 @@ const getServiceMap = (data) => {
     const serviceId = deployment.service.id;
     const environmentId = deployment.environment.id;
 
-    if (serviceMap[serviceId]) {
+    if (serviceMap[serviceId] && !serviceMap[serviceId]["deploymentID"]) {
       const service = serviceMap[serviceId];
       service.status = deployment.status;
       service.environments.add(environmentId);
-
-      if (!service.name) {
-        service.name = deployment.service.name;
-      }
-    } else {
-      serviceMap[serviceId] = {
-        ...deployment.service,
-        status: deployment.status,
-        environments: new Set([environmentId]),
-      };
-    }
+      service.deploymentID = deployment.id;
+    } 
   });
 
   return Object.values(serviceMap);
@@ -73,6 +64,7 @@ const categorizeServices = (services, environmentEdges) => {
         }
       });
     } else {
+      service.deploymentID = null;
       servicesByType['not-deployed'].services.push(service);
     }
   });
