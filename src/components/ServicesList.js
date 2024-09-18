@@ -11,14 +11,29 @@ const { Title } = Typography;
 const getStatusColor = (status) => {
   switch (status) {
     case 'SUCCESS':
-      return '#52c41a'; // green
+      return '#1890ff'; // blue
+
     case 'FAILED':
-      return '#f5222d'; // red
-    case 'NOT_DEPLOYED':
+    case 'CRASHED':
+      return '#fa8c16'; // orange
+
+    case 'BUILDING':
+    case 'INITIALIZING':
+    case 'DEPLOYING':
+    case 'REMOVING':
+    case 'WAITING':
+      return '#fadb14'; // light yellow
+
+    case 'SKIPPED':
+    case 'SLEEPING':
+    case 'REMOVED':
+    case 'NEEDS_APPROVAL':
+    case 'QUEUED':
     default:
       return '#808080'; // gray
   }
 };
+
 
 const ServicesList = ({ projectId }) => {
   const { data, loading, error, refetch } = useQuery(ENVIRONMENTS_WITH_SERVICES_QUERY, {
