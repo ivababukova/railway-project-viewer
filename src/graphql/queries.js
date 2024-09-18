@@ -90,3 +90,9 @@ export const SERVICE_CREATE_MUTATION = gql`
     }
   }
 `;
+
+export const SERVICE_DELETE_MUTATION = gql`
+  mutation DeleteMutation($id: String!) {
+    serviceDelete(id: $id)
+  }
+`;

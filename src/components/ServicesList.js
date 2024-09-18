@@ -29,16 +29,35 @@ const getStatusColor = (status) => {
     case 'REMOVED':
     case 'NEEDS_APPROVAL':
     case 'QUEUED':
+    case 'NOT_DEPLOYED':
     default:
       return '#808080'; // gray
   }
 };
 
+const getStatusType = (status) => {
+  const statusTypes = {
+    "SUCCESS": ['SUCCESS'],
+    "FAIL": ['FAILED', 'CRASHED'],
+    "IN_PROGRESS": ['BUILDING', 'INITIALIZING', 'DEPLOYING', 'REMOVING', 'WAITING'],
+    "BLOCKED": ['NEEDS_APPROVAL'],
+    "INACTIVE": ['SKIPPED', 'SLEEPING', 'REMOVED', 'QUEUED', 'NOT_DEPLOYED']
+  }
+
+  const statusProps = {
+    "SUCCESS": {
+      color: '#1890ff',
+      actions: 'delete'
+    },
+
+  }
+}
+
 
 const ServicesList = ({ projectId }) => {
   const { data, loading, error, refetch } = useQuery(ENVIRONMENTS_WITH_SERVICES_QUERY, {
     variables: { projectId },
-    pollInterval: 5000 // poll every 5 seconds to see if data is updated
+    pollInterval: 3000 // poll every 3 seconds to see if data is updated
   });
   const [serviceCreate, { loading: serviceCreateLoading }] = useMutation(SERVICE_CREATE_MUTATION);
 
@@ -65,7 +84,7 @@ const ServicesList = ({ projectId }) => {
     }
 
     return servicesList.map((service) => (
-      <ServiceCard key={service.id} service={service} color={getStatusColor(service.status)} />
+      <ServiceCard key={service.id} service={service} color={getStatusColor(service.status)} refetchFunc={refetch} />
     ));
   };
 
@@ -87,7 +106,7 @@ const ServicesList = ({ projectId }) => {
           },
         });
 
-        message.success('Service created successfully!');
+        message.success(`Service ${newServiceName} created successfully!`);
         setIsModalVisible(false);
         resetForm();
         refetch();
