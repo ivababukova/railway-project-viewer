@@ -18,7 +18,10 @@ const httpLink = new HttpLink({
 
 const wsLink = new GraphQLWsLink(
   createClient({
-    url: process.env.REACT_APP_GRAPHQL_API_URL, // backend link, check backend console for link
+    url: 'ws://backboard.railway.app',
+    connectionParams: {
+      authToken: process.env.REACT_APP_AUTH_TOKEN,
+    },
   })
 );
 
@@ -36,18 +39,18 @@ const authLink = setContext((_, { headers }) => {
 const splitLink = split(
   ({ query }) => {
     const definition = getMainDefinition(query);
-    console.log("*** query def: ", definition);
     return (
       definition.kind === 'OperationDefinition' &&
       definition.operation === 'subscription'
     );
   },
-  authLink.concat(wsLink),
+  wsLink,
   authLink.concat(httpLink),
 );
 
 
 const client = new ApolloClient({
+  uri: '/graphql',
   link: splitLink,
   cache: new InMemoryCache(),
 });

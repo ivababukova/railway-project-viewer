@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useQuery, useMutation, useSubscription } from '@apollo/client';
+import React, { useState } from 'react';
+import { useQuery, useMutation } from '@apollo/client';
 import { Col, Row, Spin, Typography, Button, Modal, Input, Radio, message } from 'antd';
-import { ENVIRONMENTS_WITH_SERVICES_QUERY, SERVICE_CREATE_MUTATION, DEPLOYMENT_SUBSCRIPTION } from '../graphql/queries';
+import { ENVIRONMENTS_WITH_SERVICES_QUERY, SERVICE_CREATE_MUTATION } from '../graphql/queries';
 import ServiceCard from './ServiceCard';
 import { useServicesData } from '../hooks/useServicesData';
 import { PlusOutlined } from '@ant-design/icons';
@@ -23,52 +23,19 @@ const getStatusColor = (status) => {
 const ServicesList = ({ projectId }) => {
   const { data, loading, error, refetch } = useQuery(ENVIRONMENTS_WITH_SERVICES_QUERY, {
     variables: { projectId },
+    pollInterval: 5000 // poll every 5 seconds to see if data is updated
   });
   const [serviceCreate, { loading: serviceCreateLoading }] = useMutation(SERVICE_CREATE_MUTATION);
 
-  console.log("***** DATA: ", data);
+  console.log("DATA: ", data);
   const { servicesByType } = useServicesData(data);
-  console.log("+++++++ servicesByType: ", servicesByType);
+  console.log("servicesByType: ", servicesByType);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newServiceName, setNewServiceName] = useState('');
   const [sourceType, setSourceType] = useState('repo');
   const [sourceValue, setSourceValue] = useState('');
-  const [activeDeployments, setActiveDeployments] = useState([]);
 
-  useEffect(() => {
-    const newActiveDeployments = Object.values(servicesByType)
-      .flatMap(env => env.services)
-      .filter(service => service.status !== 'SUCCESS' && service.status !== 'FAILED' && service.deploymentID)
-      .map(service => service.deploymentID);
-
-    setActiveDeployments(newActiveDeployments);
-  }, [servicesByType]);
-
-  console.log("***** ACTIVE: ", activeDeployments);
-
-
-  const { data: subscriptionData, loading: subscriptionLoading, error: subscriptionError } = useSubscription(DEPLOYMENT_SUBSCRIPTION, {
-    variables: { id: activeDeployments[0] },
-    skip: !activeDeployments.length,
-    onComplete: () => {
-      console.log("Subscription completed");
-    },
-    onData: ({ subscriptionData }) => {
-      console.log("Received subscription data: ", subscriptionData);
-    },
-  });
-
-  console.log("Subscription loading:", subscriptionLoading);
-  console.log("Subscription error:", subscriptionError);
-  console.log("Subscription data:", subscriptionData);
-
-  useEffect(() => {
-    console.log("Subscription state changed:");
-    console.log("Loading:", subscriptionLoading);
-    console.log("Error:", subscriptionError);
-    console.log("Data:", subscriptionData);
-  }, [subscriptionLoading, subscriptionError, subscriptionData]);
 
   if (loading) return <Spin size="large" />;
   if (error) return <p>Error loading data: {error.message}</p>;

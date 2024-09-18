@@ -90,12 +90,3 @@ export const SERVICE_CREATE_MUTATION = gql`
     }
   }
 `;
-
-export const DEPLOYMENT_SUBSCRIPTION = gql`
-  subscription deployment($id: String!) {
-    deployment(id: $id) {
-      id
-      status
-    }
-  }
-`;
