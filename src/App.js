@@ -26,7 +26,7 @@ function App() {
         </Header>
         <Content style={{ padding: '0 50px' }}>
           <div className="site-layout-content">
-            <UserTokenInput onTokenSet={handleTokenSet} />
+            {!isTokenSet && (<UserTokenInput onTokenSet={handleTokenSet} />)}
             {isTokenSet && (
               <>
                 <UserInfo />
