@@ -3,39 +3,11 @@ import { Card, Col, Tooltip, Modal, message, Button, Space, Popconfirm } from 'a
 import styled from 'styled-components';
 import { SERVICE_DELETE_MUTATION } from '../graphql/queries';
 import { useMutation } from '@apollo/client';
-import { DeleteOutlined, ArrowRightOutlined } from '@ant-design/icons';
+import { DeleteOutlined, CaretRightOutlined } from '@ant-design/icons';
 
 const StyledCard = styled(Card)`
   background-color: ${(props) => props.color};
 `;
-
-
-const getActionType = (status) => {
-  switch (status) {
-    case 'SUCCESS':
-      return; // blue
-
-    case 'FAILED':
-    case 'CRASHED':
-      return '#fa8c16'; // orange
-
-    case 'BUILDING':
-    case 'INITIALIZING':
-    case 'DEPLOYING':
-    case 'REMOVING':
-    case 'WAITING':
-      return '#fadb14'; // light yellow
-
-    case 'SKIPPED':
-    case 'SLEEPING':
-    case 'REMOVED':
-    case 'NEEDS_APPROVAL':
-    case 'QUEUED':
-    case 'NOT_DEPLOYED':
-    default:
-      return '#808080'; // gray
-  }
-};
 
 
 const actionTypes = {
@@ -108,24 +80,6 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
     }
   }
 
-  const renderActionButton = (actionType) => {
-    return (
-      <Tooltip title="Deploy Service">
-        <Popconfirm
-          title="Deploy Service"
-          description="Are you sure to deploy this service?"
-          onConfirm={deployService}
-          onCancel={() => {}}
-          okText="Yes"
-          cancelText="No"
-        >
-          <Button type="text" icon={<ArrowRightOutlined />} />
-        </Popconfirm>
-      </Tooltip>
-    )
-  }
-
-
   return (
     <Col span={8}>
       <StyledCard 
@@ -143,7 +97,7 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
               okText="Yes"
               cancelText="No"
             >
-              <Button type="text" icon={<ArrowRightOutlined />} />
+              <Button type="text" icon={<CaretRightOutlined />} />
             </Popconfirm>
           </Tooltip>
           <Tooltip title={"delete service"}>

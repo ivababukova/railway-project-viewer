@@ -5,19 +5,21 @@ import {
 } from "@apollo/client";
 
 import { setContext } from '@apollo/client/link/context';
+import { getToken } from './token.js';
 
 
 const httpLink = new HttpLink({
-  uri: process.env.REACT_APP_GRAPHQL_API_URL,
+  uri: "/graphql/v2",
 });
 
 
 
 const authLink = setContext((_, { headers }) => {
+  const token = getToken();
   return {
     headers: {
       ...headers,
-      authorization: `Bearer ${process.env.REACT_APP_AUTH_TOKEN}`,
+      authorization: token ? `Bearer ${token}` : '',
     }
   }
 });
