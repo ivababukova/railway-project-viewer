@@ -11,7 +11,7 @@ const { Title } = Typography;
 const getStatusColor = (status) => {
   switch (status) {
     case 'SUCCESS':
-      return '#1890ff'; // blue
+      return '#4EA6F9'; // blue
 
     case 'FAILED':
     case 'CRASHED':

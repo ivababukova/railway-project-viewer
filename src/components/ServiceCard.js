@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import { Card, Col, Tooltip, Modal, message, Button, Space, Popconfirm } from 'antd';
+import { Card, Col, Tooltip, Modal, message, Button, Space, Popconfirm, Typography } from 'antd';
 import styled from 'styled-components';
 import { SERVICE_DELETE_MUTATION } from '../graphql/queries';
 import { useMutation } from '@apollo/client';
 import { DeleteOutlined, CaretRightOutlined } from '@ant-design/icons';
+const { Text } = Typography;
 
 const StyledCard = styled(Card)`
   background-color: ${(props) => props.color};
@@ -110,7 +111,7 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
           </Space.Compact >
         }
       >
-        <p style={{ margin: 0 }}>ID: {service.id}</p>
+        <p style={{ margin: 0 }}>ID: <Text copyable>{service.id}</Text></p>
         <p style={{ margin: 0 }}>Status: {service.status}</p>
       </StyledCard>
       <Modal

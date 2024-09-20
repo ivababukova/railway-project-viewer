@@ -4,7 +4,7 @@ import { List, Card, Button, Spin, Typography } from 'antd';
 import { PROJECTS_QUERY } from '../graphql/queries';
 import ServicesList from './ServicesList';
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 const ProjectList = () => {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
@@ -53,7 +53,7 @@ const ProjectList = () => {
                   </Button>
                 }
               >
-                {/* <Paragraph>Project ID: {node.id}</Paragraph> */}
+                <Paragraph>Project ID: <Text copyable>{node.id}</Text> </Paragraph>
                 <Paragraph>Created: {formatDate(node.createdAt)}</Paragraph>
                 <Paragraph>Updated: {formatDate(node.updatedAt)}</Paragraph>
               </Card>
