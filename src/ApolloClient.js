@@ -8,8 +8,17 @@ import { setContext } from '@apollo/client/link/context';
 import { getToken } from './token.js';
 
 
+const setUrl = () => {
+  if (process.env.NODE_ENV === 'development') {
+    console.log("graphql url in development");
+    return '/graphql/v2'
+  }
+  console.log("graphql url in production");
+  return 'https://backboard.railway.app/graphql/v2';
+}
+
 const httpLink = new HttpLink({
-  uri: "/graphql/v2",
+  uri: setUrl(),
 });
 
 
