@@ -12,7 +12,7 @@ function UserTokenInput({ onTokenSet }) {
   const [submittedToken, setSubmittedToken] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  const { loading } = useQuery(ME_QUERY, {
+  useQuery(ME_QUERY, {
     skip: !submittedToken,
     onCompleted: () => {
       onTokenSet();

@@ -41,7 +41,7 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
   useEffect(() => {
     setActionTypeAndChecked();
     
-  },[service.status]) 
+  },[service.status]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const deleteService = async () => {
     try {
