@@ -1,17 +1,35 @@
 // UserTokenInput.js
-import React from 'react';
-import { Form, Input, Button, Typography } from 'antd';
+import React, { useState } from 'react';
+import { Form, Input, Button, Typography, Alert } from 'antd';
 import { setToken } from '../token.js';
+import { useQuery } from '@apollo/client';
+import { ME_QUERY } from '../graphql/queries';
 
 const { Title, Paragraph, Link } = Typography;
 
 function UserTokenInput({ onTokenSet }) {
   const [form] = Form.useForm();
+  const [submittedToken, setSubmittedToken] = useState(null);
+  const [errorMessage, setErrorMessage] = useState(null);
+
+  const { loading } = useQuery(ME_QUERY, {
+    skip: !submittedToken,
+    onCompleted: () => {
+      onTokenSet();
+    },
+    onError: () => {
+      setErrorMessage('Invalid token. Please try again.');
+      setToken('');
+      form.resetFields(['token']);
+      setSubmittedToken(null);
+    },
+  });
 
   const handleSubmit = (values) => {
     const { token } = values;
     setToken(token);
-    onTokenSet();
+    setSubmittedToken(token);
+    setErrorMessage(null);
   };
 
   return (
@@ -29,6 +47,14 @@ function UserTokenInput({ onTokenSet }) {
         </Link>{' '}
         page in your Railway account settings.
       </Paragraph>
+      {errorMessage && (
+        <Alert
+          message={errorMessage}
+          type="error"
+          showIcon
+          style={{ marginTop: 20 }}
+        />
+      )}
       <Form
         form={form}
         onFinish={handleSubmit}
