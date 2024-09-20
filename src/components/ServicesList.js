@@ -15,14 +15,15 @@ const getStatusColor = (status) => {
 
     case 'FAILED':
     case 'CRASHED':
-      return '#fa8c16'; // orange
+      return '#F98203'; // orange
 
     case 'BUILDING':
     case 'INITIALIZING':
+      return '#FDEB71'; // light yellow
     case 'DEPLOYING':
     case 'REMOVING':
     case 'WAITING':
-      return '#fadb14'; // light yellow
+      return '#fadb14'; // yellow
 
     case 'SKIPPED':
     case 'SLEEPING':
@@ -74,7 +75,7 @@ const ServicesList = ({ projectId }) => {
   if (loading) return <Spin size="large" />;
   if (error) return <p>Error loading data: {error.message}</p>;
 
-  const renderServices = (servicesList, color) => {
+  const renderServices = (servicesList) => {
     if (!servicesList || servicesList.length === 0) {
       return (
         <Col span={24}>
@@ -82,6 +83,8 @@ const ServicesList = ({ projectId }) => {
         </Col>
       );
     }
+
+    console.log("*** SERVICES: ", servicesList);
 
     return servicesList.map((service) => (
       <ServiceCard key={service.id} service={service} color={getStatusColor(service.status)} refetchFunc={refetch} />

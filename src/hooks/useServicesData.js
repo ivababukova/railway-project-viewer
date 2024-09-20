@@ -35,6 +35,7 @@ const getServiceMap = (data) => {
       service.status = deployment.status;
       service.environments.add(environmentId);
       service.deploymentID = deployment.id;
+      service.updatedAt = deployment.updatedAt;
     } 
   });
 

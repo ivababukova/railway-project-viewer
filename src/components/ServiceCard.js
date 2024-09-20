@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import { Card, Col, Tooltip, Modal, message, Button, Space, Popconfirm, Typography } from 'antd';
+import { Card, Col, Tooltip, Modal, message, Button, Popconfirm, Typography, Space } from 'antd';
 import styled from 'styled-components';
 import { SERVICE_DELETE_MUTATION } from '../graphql/queries';
 import { useMutation } from '@apollo/client';
@@ -76,14 +76,21 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
     }
   }
 
-  return (
-    <Col span={8}>
-      <StyledCard 
-        hoverable 
-        color={color} 
-        title={service.name} 
-        extra={
-          <Space.Compact block>
+  const formatDate = (date) => {
+    const dateOptions = {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    };
+    return new Date(date).toLocaleString(undefined, dateOptions);
+  }
+
+  const renderExtra = () => {
+    return (
+      <Space.Compact>
+        {(service.status === 'FAILED' || service.status === 'CRASHED') && (
           <Tooltip title="deploy service">
             <Popconfirm
               title="Deploy Service"
@@ -96,23 +103,36 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
               <Button type="text" icon={<CaretRightOutlined />} />
             </Popconfirm>
           </Tooltip>
-          <Tooltip title={"delete service"}>
-            <Popconfirm
-              title="Delete Service"
-              description="Are you sure to delete this service?"
-              onConfirm={deleteService}
-              onCancel={() => {}}
-              okText="Yes"
-              cancelText="No"
-            >
-              <Button type="text" icon={<DeleteOutlined />} />
-            </Popconfirm>
-          </Tooltip>
-          </Space.Compact >
-        }
+        )}
+        <Tooltip title={"delete service"}>
+          <Popconfirm
+            title="Delete Service"
+            description="Are you sure to delete this service?"
+            onConfirm={deleteService}
+            onCancel={() => {}}
+            okText="Yes"
+            cancelText="No"
+          >
+            <Button type="text" icon={<DeleteOutlined />} />
+          </Popconfirm>
+        </Tooltip>
+      </Space.Compact>
+    )
+  }
+
+  return (
+    <Col span={8}>
+      <StyledCard 
+        hoverable 
+        color={color} 
+        title={service.name} 
+        extra={renderExtra()}
       >
-        <p style={{ margin: 0 }}>ID: <Text copyable>{service.id}</Text></p>
+        <div style={{ margin: 0 }}>
+          ID: <Text copyable>{service.id}</Text>
+        </div>
         <p style={{ margin: 0 }}>Status: {service.status}</p>
+        {service.updatedAt && <p style={{ margin: 0 }}>Last Deployment: {formatDate(service.updatedAt)}</p>}
       </StyledCard>
       <Modal
         title={["Are you sure you want to ", actionType, " this service?"].join("")}

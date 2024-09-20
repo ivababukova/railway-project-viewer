@@ -72,6 +72,7 @@ export const ENVIRONMENTS_WITH_SERVICES_QUERY = gql`
           }
           createdAt
           status
+          updatedAt
         }
       }
     }
