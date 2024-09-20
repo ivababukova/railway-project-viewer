@@ -16,6 +16,8 @@ export const PROJECTS_QUERY = gql`
         node {
           id
           name
+          createdAt
+          updatedAt
         }
       }
     }

@@ -66,11 +66,6 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
     setIsModalVisible(false);
   }
 
-  const handleSwitchChange = () => {
-    setChecked(!checked);
-    setIsModalVisible(true);
-  }
-
   const onModalOk = () => {
     setIsModalVisible(false);
     if (actionType === actionTypes["DEPLOY"]) {

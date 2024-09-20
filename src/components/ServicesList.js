@@ -132,7 +132,6 @@ const ServicesList = ({ projectId }) => {
 
   return (
     <div>
-      <Title level={2}>Services by Environment</Title>
       <Button onClick={() => setIsModalVisible(true)} icon={<PlusOutlined />}>
         Create New Service
       </Button>
