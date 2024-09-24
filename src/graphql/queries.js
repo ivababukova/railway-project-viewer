@@ -24,6 +24,7 @@ export const PROJECTS_QUERY = gql`
   }
 `;
 
+// todo: this is not used by anything and can be deleted
 export const SERVICES_QUERY = gql`
   query GetProjectServices($projectId: String!) {
     project(id: $projectId) {

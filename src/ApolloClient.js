@@ -10,11 +10,9 @@ import { getToken } from './token.js';
 
 const setUrl = () => {
   if (process.env.NODE_ENV === 'development') {
-    console.log("graphql url in development");
-    return '/graphql/v2'
+    return 'http://localhost:4000/graphql'; // Replace with your server's development URL
   }
-  console.log("graphql url in production");
-  return 'https://backboard.railway.app/graphql/v2';
+  return '/graphql';
 }
 
 const httpLink = new HttpLink({
@@ -33,10 +31,15 @@ const authLink = setContext((_, { headers }) => {
   }
 });
 
+const cache = new InMemoryCache({
+  addTypename: false,
+});
 
 const client = new ApolloClient({
   link: authLink.concat(httpLink),
-  cache: new InMemoryCache(),
+  cache: cache,
 });
+
+console.log("***** CLIENT: ", client);
 
 export default client;

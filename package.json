@@ -2,7 +2,6 @@
   "name": "railway-project-viewer",
   "version": "0.1.0",
   "private": true,
-  "proxy": "https://backboard.railway.app",
   "dependencies": {
     "@ant-design/icons": "^5.4.0",
     "@apollo/client": "^3.11.8",

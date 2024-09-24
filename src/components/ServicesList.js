@@ -42,6 +42,7 @@ const ServicesList = ({ projectId }) => {
     variables: { projectId },
     pollInterval: 3000 // poll every 3 seconds to see if data is updated
   });
+
   const [serviceCreate, { loading: serviceCreateLoading }] = useMutation(SERVICE_CREATE_MUTATION);
 
   console.log("DATA: ", data);
