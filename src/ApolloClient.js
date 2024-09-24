@@ -9,10 +9,9 @@ import { getToken } from './token.js';
 
 
 const setUrl = () => {
-  if (process.env.NODE_ENV === 'development') {
-    return 'http://localhost:4000/graphql'; // Replace with your server's development URL
-  }
-  return '/graphql';
+  const url = process.env.RAILWAY_PUBLIC_DOMAIN || "http://localhost:4000";
+  console.log("URL used is: ", url);
+  return `${url}/graphql`;
 }
 
 const httpLink = new HttpLink({

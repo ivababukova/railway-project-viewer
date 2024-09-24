@@ -90,7 +90,7 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
   const renderExtra = () => {
     return (
       <Space.Compact>
-        {(service.status === 'FAILED' || service.status === 'CRASHED') && (
+        {(service.status === 'FAILED' || service.status === 'CRASHED' || service.status === 'NOT_DEPLOYED') && (
           <Tooltip title="deploy service">
             <Popconfirm
               title="Deploy Service"
@@ -131,7 +131,7 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
         <div style={{ margin: 0 }}>
           ID: <Text copyable>{service.id}</Text>
         </div>
-        <p style={{ margin: 0 }}>Status: {service.status}</p>
+        <p style={{ margin: 0 }}>Last Deployment Status: {service.status}</p>
         {service.updatedAt && <p style={{ margin: 0 }}>Last Deployment: {formatDate(service.updatedAt)}</p>}
       </StyledCard>
       <Modal
