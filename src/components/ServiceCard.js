@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import { Card, Col, Tooltip, Modal, message, Button, Popconfirm, Typography, Space } from 'antd';
 import styled from 'styled-components';
-import { SERVICE_DELETE_MUTATION } from '../graphql/queries';
+import { SERVICE_DELETE_MUTATION, SERVICE_DEPLOY_MUTATION } from '../graphql/queries';
 import { useMutation } from '@apollo/client';
 import { DeleteOutlined, CaretRightOutlined } from '@ant-design/icons';
 const { Text } = Typography;
@@ -22,6 +22,7 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
   const [checked, setChecked] = useState(true);
   const [actionType, setActionType] = useState(null);
   const [serviceDelete] = useMutation(SERVICE_DELETE_MUTATION);
+  const [serviceDeploy] = useMutation(SERVICE_DEPLOY_MUTATION);
   const [isModalVisible, setIsModalVisible] = useState(false);
 
   const setActionTypeAndChecked = () => {
@@ -54,12 +55,24 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
       message.success(`Service ${service.name} deleted successfully!`);
       refetchFunc();
     } catch (error) {
-      console.error('Error creating service:', error);
+      console.error('Error deleting service:', error);
     }
   }
 
   const deployService = async () => {
-    console.log("DEPLOYING ....")
+    try {
+      await serviceDeploy({
+        variables: {
+          serviceId: service.id,
+          environmentId: "1d4528f8-8a45-49a7-a4d9-841d8352c0dc" // TODO: parametrize this
+        },
+      });
+
+      message.success(`Deployment for service ${service.name} triggered successfully!`);
+      refetchFunc();
+    } catch (error) {
+      console.error('Error triggering deployment for service:', error);
+    }
   }
 
   const handleCancel = () => {

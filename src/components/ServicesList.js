@@ -15,10 +15,11 @@ const getStatusColor = (status) => {
 
     case 'FAILED':
     case 'CRASHED':
-      return '#F98203'; // orange
+      return '#F96303'; // orange
 
-    case 'BUILDING':
     case 'INITIALIZING':
+      return '#FBF0AA'; // very light yellow
+    case 'BUILDING':
       return '#FDEB71'; // light yellow
     case 'DEPLOYING':
     case 'REMOVING':

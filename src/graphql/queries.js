@@ -100,3 +100,9 @@ export const SERVICE_DELETE_MUTATION = gql`
     serviceDelete(id: $id)
   }
 `;
+
+export const SERVICE_DEPLOY_MUTATION = gql`
+  mutation serviceInstanceDeploy($environmentId: String!, $serviceId: String!) {
+    serviceInstanceDeploy(environmentId: $environmentId, serviceId: $serviceId)
+  }
+`;
