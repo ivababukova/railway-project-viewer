@@ -12,7 +12,7 @@ const setUrl = () => {
   if (process.env.NODE_ENV === 'development') {
     return 'http://localhost:4000/graphql';
   }
-  return "https://project-viewer-server-production.up.railway.app//graphql";
+  return "https://project-viewer-server-production.up.railway.app/graphql";
 }
 
 const httpLink = new HttpLink({
