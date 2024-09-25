@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { useQuery, useMutation } from '@apollo/client';
+import { useQuery, useLazyQuery, useMutation } from '@apollo/client';
 import { Col, Row, Spin, Typography, Button, Modal, Input, Radio, message } from 'antd';
-import { ENVIRONMENTS_WITH_SERVICES_QUERY, SERVICE_CREATE_MUTATION } from '../graphql/queries';
+import { ENVIRONMENTS_WITH_SERVICES_QUERY, SERVICE_CREATE_MUTATION, DEPLOYMENT_LOGS_QUERY } from '../graphql/queries';
 import ServiceCard from './ServiceCard';
+import DeploymentLogs from './DeploymentLogs';
 import { useServicesData } from '../hooks/useServicesData';
 import { PlusOutlined } from '@ant-design/icons';
 
@@ -43,6 +44,7 @@ const ServicesList = ({ projectId }) => {
     variables: { projectId },
     pollInterval: 3000 // poll every 3 seconds to see if data is updated
   });
+  const [getDeploymentLogs, { loading: logsLoading, data: logsData }] = useLazyQuery(DEPLOYMENT_LOGS_QUERY);
 
   const [serviceCreate, { loading: serviceCreateLoading }] = useMutation(SERVICE_CREATE_MUTATION);
 
@@ -54,10 +56,39 @@ const ServicesList = ({ projectId }) => {
   const [newServiceName, setNewServiceName] = useState('');
   const [sourceType, setSourceType] = useState('repo');
   const [sourceValue, setSourceValue] = useState('');
-
+  const [deploymentLogsVisible, setDeploymentLogsVisible] = useState(false);
 
   if (loading) return <Spin size="large" />;
   if (error) return <p>Error loading data: {error.message}</p>;
+
+  const viewServiceLogs = async (serviceId) => {
+    let deploymentId = null;
+    Object.keys(servicesByType).forEach(evironmentId => {
+      servicesByType[evironmentId].services.forEach(service => {
+        if (service.id === serviceId) {
+          deploymentId = service.deploymentID;
+          return;
+        }
+      })
+    });
+    console.log("***** found deployment id: ", deploymentId);
+    if (deploymentId !== null) {
+      try {
+        const { data } = await getDeploymentLogs({
+          variables: { 
+            deploymentId: deploymentId,
+            limit: 100
+          }
+        });
+        if (data && data.deploymentLogs) {
+          console.log("****** deployment logs!!! ", data);
+          setDeploymentLogsVisible(true);
+        }
+      } catch (error) {
+        console.error('Error fetching deployment logs for service:', error);
+      }
+    }
+  };
 
   const renderServices = (servicesList) => {
     if (!servicesList || servicesList.length === 0) {
@@ -71,7 +102,7 @@ const ServicesList = ({ projectId }) => {
     console.log("*** SERVICES: ", servicesList);
 
     return servicesList.map((service) => (
-      <ServiceCard key={service.id} service={service} color={getStatusColor(service.status)} refetchFunc={refetch} />
+      <ServiceCard key={service.id} service={service} color={getStatusColor(service.status)} refetchFunc={refetch} onCardClick={viewServiceLogs} />
     ));
   };
 
@@ -119,6 +150,11 @@ const ServicesList = ({ projectId }) => {
 
   return (
     <div>
+      <DeploymentLogs
+        logs={data?.deploymentLogs || []}
+        visible={deploymentLogsVisible}
+        onClose={() => {}}
+      ></DeploymentLogs>
       <Button onClick={() => setIsModalVisible(true)} icon={<PlusOutlined />}>
         Create New Service
       </Button>

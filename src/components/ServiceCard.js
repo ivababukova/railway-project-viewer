@@ -17,7 +17,7 @@ const actionTypes = {
 }
 
 
-const ServiceCard = ({ service, color, refetchFunc }) => {
+const ServiceCard = ({ service, color, refetchFunc, onCardClick }) => {
 
   const [checked, setChecked] = useState(true);
   const [actionType, setActionType] = useState(null);
@@ -140,6 +140,7 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
         color={color} 
         title={service.name} 
         extra={renderExtra()}
+        onClick={() => {onCardClick(service.id)}}
       >
         <div style={{ margin: 0 }}>
           ID: <Text copyable>{service.id}</Text>

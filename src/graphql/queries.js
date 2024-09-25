@@ -24,21 +24,6 @@ export const PROJECTS_QUERY = gql`
   }
 `;
 
-// todo: this is not used by anything and can be deleted
-export const SERVICES_QUERY = gql`
-  query GetProjectServices($projectId: String!) {
-    project(id: $projectId) {
-      services {
-        edges {
-          node {
-            id
-          }
-        }
-      }
-    }
-  }
-`;
-
 export const ENVIRONMENTS_WITH_SERVICES_QUERY = gql`
   query FetchEnvironmentsAndDeployments($projectId: String!) {
     environments(projectId: $projectId) {
@@ -76,6 +61,18 @@ export const ENVIRONMENTS_WITH_SERVICES_QUERY = gql`
           updatedAt
         }
       }
+    }
+  }
+`;
+
+export const DEPLOYMENT_LOGS_QUERY = gql`
+  query deploymentLogs($deploymentId: String!) {
+    deploymentLogs(
+      deploymentId: $deploymentId
+    ) {
+      message
+      severity
+      timestamp
     }
   }
 `;

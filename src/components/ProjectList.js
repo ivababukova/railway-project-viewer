@@ -63,7 +63,7 @@ const ProjectList = () => {
       />
       {selectedProjectId && (
         <div style={{ marginTop: 24 }}>
-          <Title level={2}>Services in project {selectedProjectName}</Title>
+          <Title level={2}>Services in project {selectedProjectName} per environment</Title>
           <ServicesList projectId={selectedProjectId} />
         </div>
       )}
