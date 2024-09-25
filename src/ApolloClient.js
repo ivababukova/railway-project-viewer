@@ -40,6 +40,6 @@ const client = new ApolloClient({
   cache: cache,
 });
 
-console.log("***** CLIENT: ", client);
+console.log("+++++++ CLIENT: ", client);
 
 export default client;
