@@ -1,10 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import { Card, Col, Tooltip, Modal, message, Button, Popconfirm, Typography, Space } from 'antd';
+import { Card, Col, Tooltip, Modal, message, Button, Popconfirm, Typography, Space, Select } from 'antd';
 import styled from 'styled-components';
 import { SERVICE_DELETE_MUTATION, SERVICE_DEPLOY_MUTATION } from '../graphql/queries';
 import { useMutation } from '@apollo/client';
 import { DeleteOutlined, CaretRightOutlined } from '@ant-design/icons';
 const { Text } = Typography;
+const { Option } = Select;
+
 
 const StyledCard = styled(Card)`
   background-color: ${(props) => props.color};
@@ -17,13 +19,14 @@ const actionTypes = {
 }
 
 
-const ServiceCard = ({ service, color, refetchFunc }) => {
+const ServiceCard = ({ service, environments, color, refetchFunc }) => {
 
   const [checked, setChecked] = useState(true);
   const [actionType, setActionType] = useState(null);
   const [serviceDelete] = useMutation(SERVICE_DELETE_MUTATION);
   const [serviceDeploy] = useMutation(SERVICE_DEPLOY_MUTATION);
   const [isModalVisible, setIsModalVisible] = useState(false);
+  const [environmentId, setEnvironmentId] = useState(null);
 
   const setActionTypeAndChecked = () => {
     if (['BUILDING', 'INITIALIZING', 'DEPLOYING', 'REMOVING', 'WAITING'].includes(service.status)) {
@@ -60,11 +63,12 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
   }
 
   const deployService = async () => {
+    console.log("**** environmentId: ", environmentId);
     try {
       await serviceDeploy({
         variables: {
           serviceId: service.id,
-          environmentId: "1d4528f8-8a45-49a7-a4d9-841d8352c0dc" // TODO: parametrize this
+          environmentId: environmentId
         },
       });
 
@@ -72,8 +76,27 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
       refetchFunc();
     } catch (error) {
       console.error('Error triggering deployment for service:', error);
+      message.error(`Deployment for service ${service.name} could not be triggered: ${error}.`)
     }
   }
+
+  const content = (
+    <Space direction="vertical">
+      <div>Select deployment environment:</div>
+      <Select
+        style={{ width: 200 }}
+        placeholder="Select an environment"
+        onChange={(value) => setEnvironmentId(value)}
+      >
+        {environments.map((env) => (
+          <Option key={env.envId} value={env.envId}>
+            {env.name}
+          </Option>
+        ))}
+      </Select>
+      <div>Are you sure you want to deploy this service?</div>
+    </Space>
+  );
 
   const handleCancel = () => {
     setChecked(!checked);
@@ -107,7 +130,7 @@ const ServiceCard = ({ service, color, refetchFunc }) => {
           <Tooltip title="deploy service">
             <Popconfirm
               title="Deploy Service"
-              description="Are you sure to deploy this service?"
+              description={content}
               onConfirm={deployService}
               onCancel={() => {}}
               okText="Yes"

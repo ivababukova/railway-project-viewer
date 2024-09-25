@@ -68,10 +68,15 @@ const ServicesList = ({ projectId }) => {
       );
     }
 
-    console.log("*** SERVICES: ", servicesList);
+    const environments = Object.entries(servicesByType)
+    .filter(([envId, _]) => envId !== 'not-deployed')
+    .map(([envId, { name }]) => ({ envId, name }));
+
+    console.log("*** SERVICES: ", servicesList, environments);
+
 
     return servicesList.map((service) => (
-      <ServiceCard key={service.id} service={service} color={getStatusColor(service.status)} refetchFunc={refetch} />
+      <ServiceCard key={service.id} service={service} environments={environments} color={getStatusColor(service.status)} refetchFunc={refetch} />
     ));
   };
 
@@ -151,11 +156,11 @@ const ServicesList = ({ projectId }) => {
           onChange={(e) => setSourceValue(e.target.value)}
         />
       </Modal>
-      {Object.entries(servicesByType).map(([envId, { name, color, services }]) => (
+      {Object.entries(servicesByType).map(([envId, { name, services }]) => (
         <div key={envId} style={{ marginBottom: 24 }}>
           <Title level={3}>{name}</Title>
           <Row gutter={[16, 16]}>
-            {renderServices(services, color)}
+            {renderServices(services)}
           </Row>
         </div>
       ))}
