@@ -125,21 +125,19 @@ const ServiceCard = ({ service, environments, color, refetchFunc }) => {
   const renderExtra = () => {
     return (
       <Space.Compact>
-        {(service.status === 'FAILED' || service.status === 'CRASHED' || service.status === 'NOT_DEPLOYED') && (
-          <Tooltip title="deploy service">
-            <Popconfirm
-              title="Deploy Service"
-              description={content}
-              onConfirm={deployService}
-              onCancel={() => {}}
-              okText="Yes"
-              cancelText="No"
-              okButtonProps={{ disabled: !environmentId }}
-            >
-              <Button type="text" icon={<CaretRightOutlined />} />
-            </Popconfirm>
-          </Tooltip>
-        )}
+        <Tooltip title="deploy service">
+          <Popconfirm
+            title="Deploy Service"
+            description={content}
+            onConfirm={deployService}
+            onCancel={() => {}}
+            okText="Yes"
+            cancelText="No"
+            okButtonProps={{ disabled: !environmentId }}
+          >
+            <Button type="text" icon={<CaretRightOutlined />} />
+          </Popconfirm>
+        </Tooltip>
         <Tooltip title={"delete service"}>
           <Popconfirm
             title="Delete Service"
