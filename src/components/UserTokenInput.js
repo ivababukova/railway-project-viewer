@@ -32,8 +32,6 @@ function UserTokenInput({ onTokenSet }) {
     setErrorMessage(null);
   };
 
-  console.log("all environment variables: ", process.env);
-
   return (
     <div style={{ maxWidth: 600, margin: '50px auto' }}>
       <Title level={4} style={{ textAlign: 'center' }}>

@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { useQuery } from '@apollo/client';
-import { List, Card, Button, Spin, Typography } from 'antd';
+import { List, Card, Button, Spin, Typography, theme } from 'antd';
 import { PROJECTS_QUERY } from '../graphql/queries';
 import ServicesList from './ServicesList';
 
 const { Title, Paragraph, Text } = Typography;
 
+
 const ProjectList = () => {
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [selectedProjectName, setSelectedProjectName] = useState(null);
   const { loading, error, data } = useQuery(PROJECTS_QUERY);
+  const { token } = theme.useToken();
 
   if (loading) return <Spin />;
   if (error) return <p>Error loading projects: {error.message}</p>;
@@ -52,6 +54,10 @@ const ProjectList = () => {
                     {isSelected ? 'Hide Services' : 'View Services'}
                   </Button>
                 }
+                style={{
+                  backgroundColor: isSelected ? token.colorBgTextHover : token.colorBgContainer,
+                  transition: 'background-color 0.3s',
+                }}
               >
                 <Paragraph>Project ID: <Text copyable>{node.id}</Text> </Paragraph>
                 <Paragraph>Created: {formatDate(node.createdAt)}</Paragraph>

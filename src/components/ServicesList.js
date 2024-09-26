@@ -43,12 +43,8 @@ const ServicesList = ({ projectId }) => {
     variables: { projectId },
     pollInterval: 3000 // poll every 3 seconds to see if data is updated
   });
-
   const [serviceCreate, { loading: serviceCreateLoading }] = useMutation(SERVICE_CREATE_MUTATION);
-
-  console.log("DATA: ", data);
   const { servicesByType } = useServicesData(data);
-  console.log("servicesByType: ", servicesByType);
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newServiceName, setNewServiceName] = useState('');
@@ -71,9 +67,6 @@ const ServicesList = ({ projectId }) => {
     const environments = Object.entries(servicesByType)
     .filter(([envId, _]) => envId !== 'not-deployed')
     .map(([envId, { name }]) => ({ envId, name }));
-
-    console.log("*** SERVICES: ", servicesList, environments);
-
 
     return servicesList.map((service) => (
       <ServiceCard key={service.id} service={service} environments={environments} color={getStatusColor(service.status)} refetchFunc={refetch} />

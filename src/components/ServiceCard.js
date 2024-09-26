@@ -63,7 +63,6 @@ const ServiceCard = ({ service, environments, color, refetchFunc }) => {
   }
 
   const deployService = async () => {
-    console.log("**** environmentId: ", environmentId);
     try {
       await serviceDeploy({
         variables: {
@@ -135,6 +134,7 @@ const ServiceCard = ({ service, environments, color, refetchFunc }) => {
               onCancel={() => {}}
               okText="Yes"
               cancelText="No"
+              okButtonProps={{ disabled: !environmentId }}
             >
               <Button type="text" icon={<CaretRightOutlined />} />
             </Popconfirm>
