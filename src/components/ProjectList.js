@@ -13,7 +13,7 @@ const ProjectList = () => {
   const { loading, error, data } = useQuery(PROJECTS_QUERY);
   const { token } = theme.useToken();
 
-  if (loading) return <Spin />;
+  if (loading) return <Spin data-testid="loading-spinner"/>;
   if (error) return <p>Error loading projects: {error.message}</p>;
 
   const handleOnClick = (id, name) => {

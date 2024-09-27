@@ -4,12 +4,13 @@ import { MockedProvider } from '@apollo/client/testing';
 import ProjectList from '../../components/ProjectList';
 import { PROJECTS_QUERY } from '../../graphql/queries';
 
-// Mock the ServicesList component
+
 jest.mock('../../components/ServicesList', () => {
   return function MockServicesList({ projectId }) {
     return <div data-testid="services-list">Services for project {projectId}</div>;
   };
 });
+
 
 jest.mock('antd', () => {
   const antd = jest.requireActual('antd');
@@ -59,6 +60,40 @@ const mocks = [
   },
 ];
 
+
+test('renders loading state', () => {
+  render(
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <ProjectList />
+    </MockedProvider>
+  );
+
+  expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+});
+
+
+test('renders error state', async () => {
+  const errorMock = [
+    {
+      request: {
+        query: PROJECTS_QUERY,
+      },
+      error: new Error('An error occurred'),
+    },
+  ];
+
+  render(
+    <MockedProvider mocks={errorMock} addTypename={false}>
+      <ProjectList />
+    </MockedProvider>
+  );
+
+  await waitFor(() => {
+    expect(screen.getByText('Error loading projects: An error occurred')).toBeInTheDocument();
+  });
+});
+
+
 test('renders project list when data is loaded', async () => {
   render(
     <MockedProvider mocks={mocks} addTypename={false}>
@@ -74,7 +109,31 @@ test('renders project list when data is loaded', async () => {
   });
 });
 
+
 test('allows selecting a project', async () => {
+  render(
+    <MockedProvider mocks={mocks} addTypename={false}>
+      <ProjectList />
+    </MockedProvider>
+  );
+
+  await waitFor(() => {
+    expect(screen.getByText('Project 1')).toBeInTheDocument();
+  });
+
+  expect(screen.queryByText('Hide Services')).not.toBeInTheDocument();
+  const viewServicesButtons = screen.getAllByText('View Services');
+  expect(viewServicesButtons.length).toBe(2);
+  fireEvent.click(viewServicesButtons[0]);
+
+  expect(screen.getByTestId('services-list')).toBeInTheDocument();
+  expect(screen.getByText(/Services for project proj1/)).toBeInTheDocument();
+  expect(screen.getAllByText('Hide Services').length).toBe(1);
+  expect(screen.getAllByText('View Services').length).toBe(1);
+});
+
+
+test('allows selecting and deselecting a project', async () => {
   render(
     <MockedProvider mocks={mocks} addTypename={false}>
       <ProjectList />
@@ -89,5 +148,12 @@ test('allows selecting a project', async () => {
   fireEvent.click(viewServicesButton);
 
   expect(screen.getByTestId('services-list')).toBeInTheDocument();
-  expect(screen.getByText(/Services for project proj1/)).toBeInTheDocument();
+  expect(screen.getByText('Services in project Project 1')).toBeInTheDocument();
+
+  const hideServicesButton = screen.getByText('Hide Services');
+  fireEvent.click(hideServicesButton);
+
+  expect(screen.queryByTestId('services-list')).not.toBeInTheDocument();
+  expect(screen.queryByText('Services in project Project 1')).not.toBeInTheDocument();
+  expect(screen.queryByText('Hide Services')).not.toBeInTheDocument();
 });
