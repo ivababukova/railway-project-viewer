@@ -141,7 +141,7 @@ const ServiceCard = ({ service, environments, color, refetchFunc }) => {
         <Tooltip title={"delete service"}>
           <Popconfirm
             title="Delete Service"
-            description="Are you sure to delete this service?"
+            description="Are you sure you want to delete this service?"
             onConfirm={deleteService}
             onCancel={() => {}}
             okText="Yes"
