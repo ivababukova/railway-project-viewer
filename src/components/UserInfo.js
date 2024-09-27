@@ -9,8 +9,8 @@ const { Meta } = Card;
 function UserInfo() {
   const { loading, error, data } = useQuery(ME_QUERY);
 
-  if (loading) return <Spin />;
-  if (error) return <p>Error :(</p>;
+  if (loading) return <Spin data-testid="loading-spinner"/>;
+  if (error) return <p>Error loading user information: {error.message}</p>;
 
   return (
     <Card style={{ marginBottom: 16 }}>

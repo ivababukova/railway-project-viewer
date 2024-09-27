@@ -60,100 +60,103 @@ const mocks = [
   },
 ];
 
+describe('ProjectList', () => {
 
-test('renders loading state', () => {
-  render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <ProjectList />
-    </MockedProvider>
-  );
+  test('renders loading state', () => {
+    render(
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <ProjectList />
+      </MockedProvider>
+    );
 
-  expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
-});
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
+  });
 
 
-test('renders error state', async () => {
-  const errorMock = [
-    {
-      request: {
-        query: PROJECTS_QUERY,
+  test('renders error state', async () => {
+    const errorMock = [
+      {
+        request: {
+          query: PROJECTS_QUERY,
+        },
+        error: new Error('An error occurred'),
       },
-      error: new Error('An error occurred'),
-    },
-  ];
+    ];
 
-  render(
-    <MockedProvider mocks={errorMock} addTypename={false}>
-      <ProjectList />
-    </MockedProvider>
-  );
+    render(
+      <MockedProvider mocks={errorMock} addTypename={false}>
+        <ProjectList />
+      </MockedProvider>
+    );
 
-  await waitFor(() => {
-    expect(screen.getByText('Error loading projects: An error occurred')).toBeInTheDocument();
-  });
-});
-
-
-test('renders project list when data is loaded', async () => {
-  render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <ProjectList />
-    </MockedProvider>
-  );
-
-  await waitFor(() => {
-    expect(screen.getByText('Project 1')).toBeInTheDocument();
-    expect(screen.getByText('Project 2')).toBeInTheDocument();
-    expect(screen.getByText('Created: 1 May 2023 at 12:00')).toBeInTheDocument();
-    expect(screen.getByText('Updated: 2 May 2023 at 13:00')).toBeInTheDocument();
-  });
-});
-
-
-test('allows selecting a project', async () => {
-  render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <ProjectList />
-    </MockedProvider>
-  );
-
-  await waitFor(() => {
-    expect(screen.getByText('Project 1')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Error loading projects: An error occurred')).toBeInTheDocument();
+    });
   });
 
-  expect(screen.queryByText('Hide Services')).not.toBeInTheDocument();
-  const viewServicesButtons = screen.getAllByText('View Services');
-  expect(viewServicesButtons.length).toBe(2);
-  fireEvent.click(viewServicesButtons[0]);
 
-  expect(screen.getByTestId('services-list')).toBeInTheDocument();
-  expect(screen.getByText(/Services for project proj1/)).toBeInTheDocument();
-  expect(screen.getAllByText('Hide Services').length).toBe(1);
-  expect(screen.getAllByText('View Services').length).toBe(1);
-});
+  test('renders project list when data is loaded', async () => {
+    render(
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <ProjectList />
+      </MockedProvider>
+    );
 
-
-test('allows selecting and deselecting a project', async () => {
-  render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <ProjectList />
-    </MockedProvider>
-  );
-
-  await waitFor(() => {
-    expect(screen.getByText('Project 1')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Project 1')).toBeInTheDocument();
+      expect(screen.getByText('Project 2')).toBeInTheDocument();
+      expect(screen.getByText('Created: 1 May 2023 at 12:00')).toBeInTheDocument();
+      expect(screen.getByText('Updated: 2 May 2023 at 13:00')).toBeInTheDocument();
+    });
   });
 
-  const viewServicesButton = screen.getAllByText('View Services')[0];
-  fireEvent.click(viewServicesButton);
 
-  expect(screen.getByTestId('services-list')).toBeInTheDocument();
-  expect(screen.getByText('Services in project Project 1')).toBeInTheDocument();
+  test('allows selecting a project', async () => {
+    render(
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <ProjectList />
+      </MockedProvider>
+    );
 
-  const hideServicesButton = screen.getByText('Hide Services');
-  fireEvent.click(hideServicesButton);
+    await waitFor(() => {
+      expect(screen.getByText('Project 1')).toBeInTheDocument();
+    });
 
-  expect(screen.queryByTestId('services-list')).not.toBeInTheDocument();
-  expect(screen.queryByText('Services in project Project 1')).not.toBeInTheDocument();
-  expect(screen.queryByText('Hide Services')).not.toBeInTheDocument();
+    expect(screen.queryByText('Hide Services')).not.toBeInTheDocument();
+    const viewServicesButtons = screen.getAllByText('View Services');
+    expect(viewServicesButtons.length).toBe(2);
+    fireEvent.click(viewServicesButtons[0]);
+
+    expect(screen.getByTestId('services-list')).toBeInTheDocument();
+    expect(screen.getByText(/Services for project proj1/)).toBeInTheDocument();
+    expect(screen.getAllByText('Hide Services').length).toBe(1);
+    expect(screen.getAllByText('View Services').length).toBe(1);
+  });
+
+
+  test('allows selecting and deselecting a project', async () => {
+    render(
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <ProjectList />
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Project 1')).toBeInTheDocument();
+    });
+
+    const viewServicesButton = screen.getAllByText('View Services')[0];
+    fireEvent.click(viewServicesButton);
+
+    expect(screen.getByTestId('services-list')).toBeInTheDocument();
+    expect(screen.getByText('Services in project Project 1')).toBeInTheDocument();
+
+    const hideServicesButton = screen.getByText('Hide Services');
+    fireEvent.click(hideServicesButton);
+
+    expect(screen.queryByTestId('services-list')).not.toBeInTheDocument();
+    expect(screen.queryByText('Services in project Project 1')).not.toBeInTheDocument();
+    expect(screen.queryByText('Hide Services')).not.toBeInTheDocument();
+  });
+
 });
