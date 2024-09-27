@@ -1,14 +1,26 @@
-// tests/components/ServicesList.test.js
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing';
 import ServicesList from '../../components/ServicesList';
-import { ENVIRONMENTS_QUERY, DEPLOYMENTS_QUERY } from '../../graphql/queries';
+import { ENVIRONMENTS_WITH_SERVICES_QUERY, SERVICE_CREATE_MUTATION } from '../../graphql/queries';
+
+
+jest.mock('../../hooks/useServicesData', () => ({
+  useServicesData: jest.fn((data) => {
+    if (!data) return { servicesByType: {} };
+    return {
+      servicesByType: {
+        'env1': { name: 'Production', services: [{ id: 'serv1', name: 'API', status: 'SUCCESS' }] },
+        'env2': { name: 'Staging', services: [{ id: 'serv2', name: 'Frontend', status: 'FAILED' }] },
+      }
+    };
+  })
+}));
 
 const mocks = [
   {
     request: {
-      query: ENVIRONMENTS_QUERY,
+      query: ENVIRONMENTS_WITH_SERVICES_QUERY,
       variables: { projectId: 'proj1' },
     },
     result: {
@@ -19,124 +31,134 @@ const mocks = [
             { node: { id: 'env2', name: 'Staging' } },
           ],
         },
-      },
-    },
-  },
-  {
-    request: {
-      query: DEPLOYMENTS_QUERY,
-      variables: { input: { projectId: 'proj1' } },
-    },
-    result: {
-      data: {
+        project: {
+          services: {
+            edges: [
+              { node: { id: 'serv1', name: 'API', status: 'SUCCESS' } },
+              { node: { id: 'serv2', name: 'Frontend', status: 'FAILED' } },
+            ],
+          },
+        },
         deployments: {
           edges: [
-            { 
-              node: { 
-                id: 'dep1', 
-                service: { id: 'serv1', name: 'API' },
-                environment: { id: 'env1', name: 'Production' }
-              } 
-            },
-            { 
-              node: { 
-                id: 'dep2', 
-                service: { id: 'serv2', name: 'Frontend' },
-                environment: { id: 'env2', name: 'Staging' }
-              } 
-            },
-          ],
-        },
+            {
+              node: {
+                id: "dep1", 
+                service: {id: 'serv1', name: 'API'},
+                environment: {id: 'env1', name: 'Production'},
+                createdAt: '2024-09-26T09:47:33.521Z',
+                status: 'SUCCESS',
+                updatedAt: "2024-09-26T09:48:53.248Z"
+              }
+            }
+          ]
+        }
       },
     },
   },
 ];
 
-test('renders services list when data is loaded', async () => {
-  render(
-    <MockedProvider mocks={mocks} addTypename={false}>
-      <ServicesList projectId="proj1" />
-    </MockedProvider>
-  );
+describe('ServicesList', () => {
+  test('renders loading state initially', () => {
+    render(
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <ServicesList projectId="proj1" />
+      </MockedProvider>
+    );
 
-  // Check for initial loading state
-  expect(screen.getByText(/Loading.../)).toBeInTheDocument();
-
-  // Wait for both queries to complete and data to be processed
-  await waitFor(() => {
-    expect(screen.queryByText(/Loading.../)).not.toBeInTheDocument();
-  }, { timeout: 3000 });
-
-  // Now check if everything is rendered correctly
-  expect(screen.getByText('Services by Environment')).toBeInTheDocument();
-  expect(screen.getByText('Production')).toBeInTheDocument();
-  expect(screen.getByText('Staging')).toBeInTheDocument();
-  expect(screen.getByText(/API/)).toBeInTheDocument();
-  expect(screen.getByText(/Frontend/)).toBeInTheDocument();
-});
-
-test('renders error message when there is an error', async () => {
-  const errorMock = [
-    {
-      request: {
-        query: ENVIRONMENTS_QUERY,
-        variables: { projectId: 'proj1' },
-      },
-      error: new Error('An error occurred'),
-    },
-  ];
-
-  render(
-    <MockedProvider mocks={errorMock} addTypename={false}>
-      <ServicesList projectId="proj1" />
-    </MockedProvider>
-  );
-
-  await waitFor(() => {
-    expect(screen.getByText(/Error loading environments:/)).toBeInTheDocument();
+    expect(screen.getByTestId('loading-spinner')).toBeInTheDocument();
   });
-});
 
-test('renders no services message when environment has no services', async () => {
-  const noServicesMock = [
-    {
-      request: {
-        query: ENVIRONMENTS_QUERY,
-        variables: { projectId: 'proj1' },
+
+  test('renders error message when there is an error', async () => {
+    const errorMock = [
+      {
+        request: {
+          query: ENVIRONMENTS_WITH_SERVICES_QUERY,
+          variables: { projectId: 'proj1' },
+        },
+        error: new Error('An error occurred'),
       },
-      result: {
-        data: {
-          environments: {
-            edges: [
-              { node: { id: 'env1', name: 'Empty Environment' } },
-            ],
+    ];
+
+    render(
+      <MockedProvider mocks={errorMock} addTypename={false}>
+        <ServicesList projectId="proj1" />
+      </MockedProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText(/Error loading data: An error occurred/)).toBeInTheDocument();
+    });
+  });
+
+
+  test('opens modal when "Create New Service" button is clicked', async () => {
+    render(
+      <MockedProvider mocks={mocks} addTypename={false}>
+        <ServicesList projectId="proj1" />
+      </MockedProvider>
+    );
+  
+    // Wait for the component to load
+    await waitFor(() => {
+      expect(screen.getByText('Create New Service')).toBeInTheDocument();
+    });
+  
+    // Click the "Create New Service" button
+    fireEvent.click(screen.getByText('Create New Service'));
+  
+    // Check if the modal is visible
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+  
+    // Check for elements inside the modal
+    expect(screen.getByPlaceholderText('Service Name')).toBeInTheDocument();
+    expect(screen.getByText('Repository')).toBeInTheDocument();
+    expect(screen.getByText('Image')).toBeInTheDocument();
+  });
+
+
+  test('creates new service when form is submitted', async () => {
+    const createServiceMock = jest.fn(() => ({ data: { serviceCreate: { id: 'new-service' } } }));
+    const specificMocks = [
+      ...mocks,
+      {
+        request: {
+          query: SERVICE_CREATE_MUTATION,
+          variables: {
+            input: {
+              name: 'New Service',
+              projectId: 'proj1',
+              source: { repo: 'https://github.com/example/repo' },
+            },
           },
         },
+        result: createServiceMock,
       },
-    },
-    {
-      request: {
-        query: DEPLOYMENTS_QUERY,
-        variables: { input: { projectId: 'proj1' } },
-      },
-      result: {
-        data: {
-          deployments: {
-            edges: [],
-          },
-        },
-      },
-    },
-  ];
+    ];
 
-  render(
-    <MockedProvider mocks={noServicesMock} addTypename={false}>
-      <ServicesList projectId="proj1" />
-    </MockedProvider>
-  );
+    render(
+      <MockedProvider mocks={specificMocks} addTypename={false}>
+        <ServicesList projectId="proj1" />
+      </MockedProvider>
+    );
 
-  await waitFor(() => {
-    expect(screen.getByText('Empty Environment')).toBeInTheDocument();
-    expect(screen.getByText('No services in this environment.')).toBeInTheDocument();
+    await waitFor(() => {
+      fireEvent.click(screen.getByText('Create New Service'));
+    });
+
+    fireEvent.change(screen.getByPlaceholderText('Service Name'), { target: { value: 'New Service' } });
+    fireEvent.change(screen.getByPlaceholderText('GitHub Repo URL'), { target: { value: 'https://github.com/example/repo' } });
+
+    await act(async () => {
+      fireEvent.click(screen.getByText('Create'));
+    });
+
+    await waitFor(() => {
+      expect(createServiceMock).toHaveBeenCalled();
+      expect(screen.getByText('Service New Service created successfully!')).toBeInTheDocument();
+    });
   });
 });

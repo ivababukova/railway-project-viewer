@@ -44,7 +44,7 @@ const ServicesList = ({ projectId }) => {
     pollInterval: 3000 // poll every 3 seconds to see if data is updated
   });
   const [serviceCreate, { loading: serviceCreateLoading }] = useMutation(SERVICE_CREATE_MUTATION);
-  const { servicesByType } = useServicesData(data);
+  const { servicesByType } = useServicesData(data) || { servicesByType: {} };
 
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [newServiceName, setNewServiceName] = useState('');
@@ -52,7 +52,7 @@ const ServicesList = ({ projectId }) => {
   const [sourceValue, setSourceValue] = useState('');
 
   
-  if (loading) return <Spin size="large" />;
+  if (loading) return <Spin data-testid="loading-spinner" size="large" />;
   if (error) return <p>Error loading data: {error.message}</p>;
 
   const renderServices = (servicesList) => {
