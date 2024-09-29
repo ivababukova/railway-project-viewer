@@ -130,7 +130,6 @@ const ServiceCard = ({ service, environments, color, refetchFunc }) => {
             title="Deploy Service"
             description={content}
             onConfirm={deployService}
-            onCancel={() => {}}
             okText="Yes"
             cancelText="No"
             okButtonProps={{ disabled: !environmentId }}
@@ -143,7 +142,6 @@ const ServiceCard = ({ service, environments, color, refetchFunc }) => {
             title="Delete Service"
             description="Are you sure you want to delete this service?"
             onConfirm={deleteService}
-            onCancel={() => {}}
             okText="Yes"
             cancelText="No"
           >

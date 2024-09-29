@@ -4,9 +4,6 @@ import {
   InMemoryCache,
 } from "@apollo/client";
 
-import { setContext } from '@apollo/client/link/context';
-import { getToken } from './token.js';
-
 
 const setUrl = () => {
   if (process.env.NODE_ENV === 'development') {
@@ -17,26 +14,16 @@ const setUrl = () => {
 
 const httpLink = new HttpLink({
   uri: setUrl(),
+  credentials: 'include',
 });
 
-
-
-const authLink = setContext((_, { headers }) => {
-  const token = getToken();
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : '',
-    }
-  }
-});
 
 const cache = new InMemoryCache({
   addTypename: false,
 });
 
 const client = new ApolloClient({
-  link: authLink.concat(httpLink),
+  link: httpLink,
   cache: cache,
 });
 

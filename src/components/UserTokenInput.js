@@ -1,35 +1,35 @@
-// UserTokenInput.js
 import React, { useState } from 'react';
 import { Form, Input, Button, Typography, Alert } from 'antd';
-import { setToken } from '../token.js';
-import { useQuery } from '@apollo/client';
-import { ME_QUERY } from '../graphql/queries';
+import axios from 'axios';
+
 
 const { Title, Paragraph, Link } = Typography;
 
+
+const getUrl = () => {
+  if (process.env.NODE_ENV === 'development') {
+    return 'http://localhost:4000/api/set-token';
+  }
+  return "https://project-viewer-server-production.up.railway.app/api/set-token";
+}
+
+
 function UserTokenInput({ onTokenSet }) {
   const [form] = Form.useForm();
-  const [submittedToken, setSubmittedToken] = useState(null);
   const [errorMessage, setErrorMessage] = useState(null);
 
-  useQuery(ME_QUERY, {
-    skip: !submittedToken,
-    onCompleted: () => {
-      onTokenSet();
-    },
-    onError: () => {
-      setErrorMessage('Invalid token. Please try again.');
-      setToken('');
-      form.resetFields(['token']);
-      setSubmittedToken(null);
-    },
-  });
 
-  const handleSubmit = (values) => {
+  const handleSubmit = async (values) => {
     const { token } = values;
-    setToken(token);
-    setSubmittedToken(token);
-    setErrorMessage(null);
+    const url = getUrl();
+    try {
+      await axios.post(url, { token }, { withCredentials: true });
+      setErrorMessage(null);
+      onTokenSet();
+    } catch (error) {
+      setErrorMessage('Invalid token or server error. Please try again.');
+      form.resetFields(['token']);
+    }
   };
 
   return (
@@ -39,16 +39,23 @@ function UserTokenInput({ onTokenSet }) {
       </Title>
       <Paragraph style={{ marginTop: 20, fontSize: 16, lineHeight: 1.5 }}>
         Log in using a
-        <Link href="https://docs.railway.app/guides/public-api" target="_blank" rel="noopener noreferrer">
-        {' '}Railway public API token
-        </Link>. <br /> Create one by visiting the{' '}
-        <Link href="https://railway.app/account/tokens" target="_blank" rel="noopener noreferrer">
+        <Link
+          href="https://docs.railway.app/guides/public-api"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {' '}Railway public API token
+        </Link>. <br /> 
+        Create one by visiting the{' '}
+        <Link
+          href="https://railway.app/account/tokens"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
           tokens
         </Link>{' '}
         page in your Railway account settings.
-      </Paragraph>
-      <div>
-    </div>
+      </Paragraph>  
       {errorMessage && (
         <Alert
           message={errorMessage}
@@ -57,6 +64,7 @@ function UserTokenInput({ onTokenSet }) {
           style={{ marginTop: 20 }}
         />
       )}
+  
       <Form
         form={form}
         onFinish={handleSubmit}
@@ -74,6 +82,7 @@ function UserTokenInput({ onTokenSet }) {
         >
           <Input.Password placeholder="Enter your auth token" />
         </Form.Item>
+
         <Form.Item>
           <Button type="primary" htmlType="submit" block>
             Submit Token
@@ -81,7 +90,7 @@ function UserTokenInput({ onTokenSet }) {
         </Form.Item>
       </Form>
     </div>
-  );
+  );  
 }
 
 export default UserTokenInput;

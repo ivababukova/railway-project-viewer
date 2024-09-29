@@ -1,15 +1,15 @@
 import React from 'react';
-import { render, screen, fireEvent, act } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MockedProvider } from '@apollo/client/testing';
 import App from '../App';
-import * as tokenModule from '../token.js';
 
 
 jest.mock('../components/UserTokenInput', () => ({ onTokenSet }) => (
   <div data-testid="user-token-input">
     <button onClick={onTokenSet}>Set Token</button>
   </div>
-));jest.mock('../components/UserInfo', () => () => <div data-testid="user-info">User Info</div>);
+));
+jest.mock('../components/UserInfo', () => () => <div data-testid="user-info">User Info</div>);
 jest.mock('../components/ProjectList', () => () => <div data-testid="project-list">Project List</div>);
 
 
@@ -25,9 +25,7 @@ describe('App Component', () => {
   });
 
 
-  test('renders UserTokenInput when token is not set', () => {
-    jest.spyOn(tokenModule, 'getToken').mockReturnValue(null);
-    
+  test('renders UserTokenInput when token is not set', () => {    
     render(
       <MockedProvider mocks={[]} addTypename={false}>
         <App />
@@ -40,43 +38,26 @@ describe('App Component', () => {
   });
 
 
-  test('renders UserInfo and ProjectList when token is set', () => {
-    jest.spyOn(tokenModule, 'getToken').mockReturnValue('some-token');
-    
+  test('renders UserInfo and ProjectList after token is set', async () => {
     render(
       <MockedProvider mocks={[]} addTypename={false}>
         <App />
       </MockedProvider>
     );
-    
-    expect(screen.queryByTestId('user-token-input')).not.toBeInTheDocument();
-    expect(screen.getByTestId('user-info')).toBeInTheDocument();
-    expect(screen.getByTestId('project-list')).toBeInTheDocument();
-  });
 
-
-  test('updates view when token is set', async () => {
-    jest.spyOn(tokenModule, 'getToken').mockReturnValue(null);
-    
-    render(
-      <MockedProvider mocks={[]} addTypename={false}>
-        <App />
-      </MockedProvider>
-    );
-    
+    // Initially, UserTokenInput should be present
     expect(screen.getByTestId('user-token-input')).toBeInTheDocument();
+    expect(screen.queryByTestId('user-info')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('project-list')).not.toBeInTheDocument();
 
-    // Simulate token being set
-    act(() => {
-      const setTokenButton = screen.getByText('Set Token');
-      setTokenButton.click();
+    // Simulate clicking the "Set Token" button to set the token
+    fireEvent.click(screen.getByText('Set Token'));
+
+    // Wait for UserInfo and ProjectList to appear
+    await waitFor(() => {
+      expect(screen.queryByTestId('user-token-input')).not.toBeInTheDocument();
+      expect(screen.getByTestId('user-info')).toBeInTheDocument();
+      expect(screen.getByTestId('project-list')).toBeInTheDocument();
     });
-
-    // Wait for the state to update
-    await screen.findByTestId('user-info');
-
-    expect(screen.queryByTestId('user-token-input')).not.toBeInTheDocument();
-    expect(screen.getByTestId('user-info')).toBeInTheDocument();
-    expect(screen.getByTestId('project-list')).toBeInTheDocument();
   });
 });

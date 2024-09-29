@@ -1,44 +1,19 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { MockedProvider } from '@apollo/client/testing';
 import UserTokenInput from '../../components/UserTokenInput';
-import { ME_QUERY } from '../../graphql/queries';
-import * as tokenModule from '../../token.js';
+import axios from 'axios';
 
-// Mock the setToken function
-jest.mock('../../token.js', () => ({
-  setToken: jest.fn(),
-}));
 
-const mocks = [
-  {
-    request: {
-      query: ME_QUERY,
-    },
-    result: {
-      data: {
-        me: { id: '1', email: 'test@example.com' },
-      },
-    },
-  },
-];
-
-const errorMock = [
-  {
-    request: {
-      query: ME_QUERY,
-    },
-    error: new Error('Invalid token'),
-  },
-];
+jest.mock('axios');
 
 describe('UserTokenInput', () => {
+  beforeEach(() => {
+    // Clear all instances and calls to constructor and all methods:
+    axios.post.mockClear();
+  });
+
   test('renders welcome message and form', () => {
-    render(
-      <MockedProvider mocks={mocks} addTypename={false}>
-        <UserTokenInput onTokenSet={() => {}} />
-      </MockedProvider>
-    );
+    render(<UserTokenInput onTokenSet={() => {}} />);
 
     expect(screen.getByText('Welcome to Railway Project Viewer!')).toBeInTheDocument();
     expect(screen.getByText('Railway public API token')).toBeInTheDocument();
@@ -46,78 +21,106 @@ describe('UserTokenInput', () => {
     expect(screen.getByRole('button', { name: 'Submit Token' })).toBeInTheDocument();
   });
 
-
   test('submits token and calls onTokenSet on success', async () => {
     const onTokenSet = jest.fn();
-    render(
-      <MockedProvider mocks={mocks} addTypename={false}>
-        <UserTokenInput onTokenSet={onTokenSet} />
-      </MockedProvider>
-    );
+    axios.post.mockResolvedValue({ data: { message: 'Token set successfully' } });
 
-    fireEvent.change(screen.getByPlaceholderText('Enter your auth token'), { target: { value: 'valid-token' } });
+    render(<UserTokenInput onTokenSet={onTokenSet} />);
+
+    fireEvent.change(screen.getByPlaceholderText('Enter your auth token'), {
+      target: { value: 'valid-token' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Submit Token' }));
 
     await waitFor(() => {
-      expect(tokenModule.setToken).toHaveBeenCalledWith('valid-token');
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.any(String),
+        { token: 'valid-token' },
+        { withCredentials: true }
+      );
       expect(onTokenSet).toHaveBeenCalled();
     });
   });
 
-
   test('displays error message on invalid token', async () => {
-    render(
-      <MockedProvider mocks={errorMock} addTypename={false}>
-        <UserTokenInput onTokenSet={() => {}} />
-      </MockedProvider>
-    );
+    axios.post.mockRejectedValue({
+      response: { data: { error: 'Invalid token. Please try again.' } },
+    });
 
-    fireEvent.change(screen.getByPlaceholderText('Enter your auth token'), { target: { value: 'invalid-token' } });
+    render(<UserTokenInput onTokenSet={() => {}} />);
+
+    fireEvent.change(screen.getByPlaceholderText('Enter your auth token'), {
+      target: { value: 'invalid-token' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Submit Token' }));
 
     await waitFor(() => {
-      expect(screen.getByText('Invalid token. Please try again.')).toBeInTheDocument();
-      expect(tokenModule.setToken).toHaveBeenCalledWith('');
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.any(String),
+        { token: 'invalid-token' },
+        { withCredentials: true }
+      );
+      expect(
+        screen.getByText('Invalid token or server error. Please try again.')
+      ).toBeInTheDocument();
+      expect(screen.getByPlaceholderText('Enter your auth token')).toHaveValue('');
     });
   });
-
 
   test('requires token input', async () => {
-    render(
-      <MockedProvider mocks={mocks} addTypename={false}>
-        <UserTokenInput onTokenSet={() => {}} />
-      </MockedProvider>
-    );
+    render(<UserTokenInput onTokenSet={() => {}} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Submit Token' }));
 
     await waitFor(() => {
-      expect(screen.getByText('Please input your authentication token!')).toBeInTheDocument();
+      expect(
+        screen.getByText('Please input your authentication token!')
+      ).toBeInTheDocument();
     });
   });
 
-
   test('clears error message on successful submission', async () => {
-    render(
-      <MockedProvider mocks={errorMock} addTypename={false}>
-        <UserTokenInput onTokenSet={() => {}} />
-      </MockedProvider>
-    );
+    const onTokenSet = jest.fn();
 
-    // First, trigger an error
-    fireEvent.change(screen.getByPlaceholderText('Enter your auth token'), { target: { value: 'invalid-token' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Submit Token' }));
-
-    await waitFor(() => {
-      expect(screen.getByText('Invalid token. Please try again.')).toBeInTheDocument();
+    axios.post.mockRejectedValueOnce({
+      response: { data: { error: 'Invalid token. Please try again.' } },
     });
 
-    // Then, submit a valid token
-    fireEvent.change(screen.getByPlaceholderText('Enter your auth token'), { target: { value: 'valid-token' } });
+    render(<UserTokenInput onTokenSet={onTokenSet} />);
+
+    fireEvent.change(screen.getByPlaceholderText('Enter your auth token'), {
+      target: { value: 'invalid-token' },
+    });
     fireEvent.click(screen.getByRole('button', { name: 'Submit Token' }));
 
     await waitFor(() => {
-      expect(screen.queryByText('Invalid token. Please try again.')).not.toBeInTheDocument();
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.any(String),
+        { token: 'invalid-token' },
+        { withCredentials: true }
+      );
+      expect(
+        screen.getByText('Invalid token or server error. Please try again.')
+      ).toBeInTheDocument();
+    });
+
+    axios.post.mockResolvedValueOnce({ data: { message: 'Token set successfully' } });
+
+    fireEvent.change(screen.getByPlaceholderText('Enter your auth token'), {
+      target: { value: 'valid-token' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit Token' }));
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        expect.any(String),
+        { token: 'valid-token' },
+        { withCredentials: true }
+      );
+      expect(
+        screen.queryByText('Invalid token or server error. Please try again.')
+      ).not.toBeInTheDocument();
+      expect(onTokenSet).toHaveBeenCalled();
     });
   });
 });

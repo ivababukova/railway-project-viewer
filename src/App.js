@@ -5,14 +5,13 @@ import client from './ApolloClient';
 import UserInfo from './components/UserInfo';
 import ProjectList from './components/ProjectList';
 import UserTokenInput from './components/UserTokenInput';
-import { getToken } from './token.js';
 import './App.css';
 
 const { Header, Content } = Layout;
 const { Title } = Typography;
 
 function App() {
-  const [isTokenSet, setIsTokenSet] = useState(!!getToken());
+  const [isTokenSet, setIsTokenSet] = useState(false);
 
   const handleTokenSet = () => {
     setIsTokenSet(true);
